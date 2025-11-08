@@ -1,1 +1,0 @@
-﻿// Deprecated placeholder kept to avoid breaking links. HosPingMod.cs now contains the mod entry point.
