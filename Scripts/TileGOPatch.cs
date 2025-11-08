@@ -25,6 +25,6 @@ static class TileGOPatch
             return;
         }
 
-        TilePingService.TryCreatePing(__instance);
+        TilePingCoordinator.RequestPing(__instance);
     }
 }

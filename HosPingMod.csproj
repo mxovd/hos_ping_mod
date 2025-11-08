@@ -6,6 +6,7 @@
     <OutputPath>output\</OutputPath>
     <AssemblyName>HosPingMod</AssemblyName>
     <RootNamespace>HosPingMod</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
   <!-- Disables the debug .pdb file when exporting your mod -->
@@ -80,6 +81,15 @@
       <Private>false</Private>
     </Reference>
 
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Scripts/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="decompiled/**/*.cs" />
+    <None Include="decompiled/**/*.cs" />
   </ItemGroup>
 
 </Project>
