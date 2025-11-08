@@ -1,84 +1,47 @@
-Hex of Steel – Template Mod for Harmony
+Hex of Steel – Tile Ping Mod
 ====================================================================
 
-This template project contains the very basics necessary for creating mods for Hex of Steel using the Harmony library.
-Mods allow you to change or extend the game’s behavior without touching the original game files.
-
-====================================================================
-
-
-
-What is Harmony?
-----------------
-Harmony is a .NET library that lets you patch, replace, or extend methods in existing code at runtime.
-In short: it’s the tool that makes modding possible for Unity-based games like Hex of Steel.
+Hos Ping Mod adds quick tile pings to highlight tiles using Alt+Left Click.
 
 ====================================================================
 
-Getting Started
-----------------
-1. Install the prerequisites
-- .NET 8 SDK (see Resources section for download link)
-- Visual Studio Code (or any other C# IDE) (see Resources section for download link)
+Features
+--------
+- Alt+Left Click any tile on the map to create a ping highlight.
+- Built-in 0.4 s cooldown prevents ping spam.
+- Ignores clicks while the pointer is over UI, so chats and menus stay usable.
+- Works in multiplayer sessions; everyone in the room sees the same highlight.
 
-2. Open the project
-- Launch your IDE and open this example mod project.
+Controls
+--------
+- Hold Left Alt or Right Alt, then left-click the tile you want to ping.
+- Release the key and click again to ping a new position.
+- Pings reuse the game's native highlight and expire based on game rules.
 
-3. Explore the code
-- Take a look at the .cs (C# source code) files. These are where your mod logic goes.
+Build
+-----
+1. Install the .NET 8 SDK and your preferred C# IDE (Visual Studio, Rider, or VS Code).
+2. Open hos_ping_mod.sln.
+3. Restore references if prompted (Harmony and the game assemblies must be available).
+4. Build the project; HosPingMod.dll is emitted to output/net48/.
 
-4. Build the project
-- In VS Code: Terminal → Run Task → dotnet: build
-Or from the terminal: dotnet build
+Installation
+------------
+1. Create or open a mod folder inside Hex of Steel.
+2. Copy output/net48/HosPingMod.dll into the mod's Libraries directory.
+3. Launch Hex of Steel, enable the ping mod in the Mods menu (and under Harmony), and start a multiplayer game.
 
-After building, the mod DLL will be created in the output folder.
+Troubleshooting
+---------------
+- Check Player.log if pings stop appearing or the mod fails to load.
+  - Windows: %USERPROFILE%/AppData/LocalLow/War Frogs Studio/Hex of Steel/Player.log
+  - macOS: ~/Library/Logs/War Frogs Studio/Hex of Steel/Player.log
+  - Linux: ~/.config/unity3d/War Frogs Studio/Hex of Steel/Player.log
+- Make sure no other mod replaces TileGO.OnMouseOver without chaining postfix patches.
 
-What’s a DLL?
-----------------
-A DLL (Dynamic Link Library) is the compiled version of your mod. The game loads it when your mod is enabled.
-
-5. Add the DLL to your mod folder
-- In Hex of Steel, create a new mod (or open one you’ve already made).
-- Place the DLL into your mod’s libraries folder.
-
-6. Enable your mod in the game
-- Launch Hex of Steel.
-- Go to the mod menu and enable your mod.
-- Check the game for your changes!
-
-====================================================================
-
-Debugging
-----------------
-If your mod doesn’t work or crashes, check the Player.log file. It records all errors and helpful debug messages.
-
-Player.log locations:
-- Windows: %USERPROFILE%\AppData\LocalLow\War Frogs Studio\Hex of Steel\Player.log
-- MacOS: ~/Library/Logs/War Frogs Studio/Hex of Steel/Player.log
-- Linux: ~/.config/unity3d/War Frogs Studio/Hex of Steel/Player.log
-
-====================================================================
-
-Resources
----------------------------------------------------------------------
-- Hex of Steel Community: https://discord.gg/Tn63mrwJyH
-- .NET 8 SDK: https://dotnet.microsoft.com/en-us/download/dotnet/8.0
-- Visual Studio Code (lightweight IDE): https://code.visualstudio.com
-- Harmony Documentation: https://harmony.pardeike.net/
-
-====================================================================
-
-Tips
-----------------
-- Install IDE extensions (like the Unity extension for VS Code) to improve your workflow.
-- Always check Hex of Steel updates for compatibility — mods may break after a new patch.
-- Coding assistants (like ChatGPT or Copilot) can help you write and debug Harmony patches faster.
-- Share your mods and collaborate with the community!
-
-====================================================================
-
-Advanced Notes
-----------------
-- Inlining & tiny methods: Some very short methods (1–2 lines) may silently fail to patch because of runtime optimizations. If this happens, let the developer know — inlining can be disabled.
-- Key system: The current system uses int32 hashes for modded property keys. Collisions are extremely rare (~0.000115%) but technically possible.
-- Code refactoring: If you need parts of the game code refactored to make modding easier, reach out — improvements can often be added.
+Development Notes
+-----------------
+- Entry point: Scripts/HosPingMod.cs wires Harmony and registers patches.
+- Input helper: Scripts/InputHelper.cs proxies Unity input (needed outside Unity's player loop).
+- Ping logic: Scripts/TilePingService.cs applies cooldowns and triggers highlights.
+- Patch hook: Scripts/TileGOPatch.cs listens for Alt+clicks on tiles.

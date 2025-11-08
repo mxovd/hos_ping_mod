@@ -1,9 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <!-- Target .NET Framework version used by Unity -->
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <OutputPath>output\</OutputPath>
+    <AssemblyName>HosPingMod</AssemblyName>
+    <RootNamespace>HosPingMod</RootNamespace>
   </PropertyGroup>
 
   <!-- Disables the debug .pdb file when exporting your mod -->
@@ -41,18 +43,18 @@
     <!-- Unity UI system, to interact with anything UI-related -->
     <Reference Include="UnityEngine.UI">
       <Private>false</Private>
-    </Reference>         
-    
+    </Reference>
+
     <!-- Extra Unity UI system, to interact with Canvases etc -->
     <Reference Include="UnityEngine.UIModule">
       <Private>false</Private>
-    </Reference>      
-    
+    </Reference>
+
     <!-- Unity Image Conversion module, used to perform operations on textures -->
     <Reference Include="UnityEngine.ImageConversionModule">
       <Private>false</Private>
-    </Reference>    
-    
+    </Reference>
+
     <!-- Unity Audio module, used to handle audio clips or audio sources (Musics, SFXs...) -->
     <Reference Include="UnityEngine.AudioModule">
       <Private>false</Private>
@@ -61,8 +63,8 @@
     <!-- TextMeshPro UI text rendering, to interact with the text elements -->
     <Reference Include="Unity.TextMeshPro">
       <Private>false</Private>
-    </Reference>      
-    
+    </Reference>
+
     <!-- Extra tools for text objects -->
     <Reference Include="UnityEngine.TextRenderingModule">
       <Private>false</Private>
