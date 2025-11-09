@@ -1,12 +1,8 @@
+# Hex of Steel – Tile Ping Mod
 
 ![Ping Demo](https://i.imgur.com/5zElXEk.gif)
 
-Hex of Steel – Tile Ping Mod
-====================================================================
-
 Hos Ping Mod adds quick tile pings to highlight tiles using Alt+Left Click.
-
-====================================================================
 
 Features
 --------
