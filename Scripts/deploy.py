@@ -29,6 +29,9 @@ def main() -> None:
     project_path = root / "HosPingMod.csproj"
     output_dll = root / "output" / "net48" / "HosPingMod.dll"
     package_root = root / "package"
+    assets_dir = root / "assets"
+    thumbnail_src = assets_dir / "Thumbnail.jpg"
+    ping_sound_src = assets_dir / "ping_1.ogg"
 
     if not manifest_path.exists():
         raise SystemExit(f"manifest.json not found at {manifest_path}")
@@ -46,9 +49,11 @@ def main() -> None:
     timestamp = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
     package_dir = package_root / f"{safe_name}-v{mod_version}-{timestamp}"
     libraries_dir = package_dir / "Libraries"
+    sounds_attack_dir = package_dir / "Sounds" / "Attack"
 
     package_dir.mkdir(parents=True, exist_ok=True)
     libraries_dir.mkdir(parents=True, exist_ok=True)
+    sounds_attack_dir.mkdir(parents=True, exist_ok=True)
 
     run(["dotnet", "build", str(project_path), "--configuration", "Release"], cwd=root)
 
@@ -57,6 +62,12 @@ def main() -> None:
 
     shutil.copy2(manifest_path, package_dir / "Manifest.json")
     shutil.copy2(output_dll, libraries_dir / output_dll.name)
+
+    if thumbnail_src.exists():
+        shutil.copy2(thumbnail_src, package_dir / "Thumbnail.jpg")
+
+    if ping_sound_src.exists():
+        shutil.copy2(ping_sound_src, sounds_attack_dir / ping_sound_src.name)
 
     print(f"Package created at {package_dir}")
 
