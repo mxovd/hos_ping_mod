@@ -19,6 +19,7 @@ mono_crash.*
 
 # Build results
 decompiled/
+package/
 output/
 [Dd]ebug/
 [Dd]ebugPublic/
