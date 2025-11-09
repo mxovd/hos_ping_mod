@@ -1,3 +1,6 @@
+
+[img]https://i.imgur.com/5zElXEk.gif[/img]
+
 Hex of Steel – Tile Ping Mod
 ====================================================================
 
