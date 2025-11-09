@@ -25,7 +25,7 @@ def run(command: list[str], *, cwd: Path) -> None:
 
 def main() -> None:
     root = Path(__file__).resolve().parent.parent
-    manifest_path = root / "manifest.json"
+    manifest_path = root / "Manifest.json"
     project_path = root / "HosPingMod.csproj"
     output_dll = root / "output" / "net48" / "HosPingMod.dll"
     package_root = root / "package"
@@ -55,7 +55,7 @@ def main() -> None:
     if not output_dll.exists():
         raise SystemExit(f"Build completed but DLL missing at {output_dll}")
 
-    shutil.copy2(manifest_path, package_dir / "manifest.json")
+    shutil.copy2(manifest_path, package_dir / "Manifest.json")
     shutil.copy2(output_dll, libraries_dir / output_dll.name)
 
     print(f"Package created at {package_dir}")
