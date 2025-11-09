@@ -24,6 +24,22 @@ static class InputHelper
         return method.Invoke(null, new object[] { button }) is bool result && result;
     }
 
+    public static bool GetMouseButton(int button)
+    {
+        if (InputType == null)
+        {
+            return false;
+        }
+
+        var method = AccessTools.Method(InputType, "GetMouseButton", MouseButtonSignature);
+        if (method == null)
+        {
+            return false;
+        }
+
+        return method.Invoke(null, new object[] { button }) is bool result && result;
+    }
+
     public static bool GetKey(KeyCode key)
     {
         if (InputType == null)
