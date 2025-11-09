@@ -15,9 +15,8 @@ Build
 -----
 1. Install the .NET 8 SDK and your preferred C# IDE (Visual Studio, Rider, or VS Code).
 2. Open hos_ping_mod.sln.
-3. Restore references if prompted (Harmony and the game assemblies must be available).
-4. Build the project; HosPingMod.dll is emitted to output/net48/.
-5. Run deploy.py to create a mod folder.
+3. Build the project; HosPingMod.dll is emitted to output/net48/.
+4. Run deploy.py to create a mod folder.
 
 Installation
 ------------
