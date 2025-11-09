@@ -1,5 +1,5 @@
 
-[img]https://i.imgur.com/5zElXEk.gif[/img]
+![Ping Demo](https://i.imgur.com/5zElXEk.gif)
 
 Hex of Steel – Tile Ping Mod
 ====================================================================
