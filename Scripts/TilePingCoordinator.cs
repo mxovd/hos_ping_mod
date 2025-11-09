@@ -19,18 +19,19 @@ static class TilePingCoordinator
             return;
         }
 
-        if (!TilePingService.TryCreatePing(tileGO))
+        string senderNickname = GetLocalNickname();
+
+        if (!TilePingService.TryCreatePing(tileGO, false, senderNickname))
+        {
+            return;
+        }
+
+        if (string.IsNullOrEmpty(senderNickname))
         {
             return;
         }
 
         if (!ShouldBroadcast())
-        {
-            return;
-        }
-
-        string senderNickname = GetLocalNickname();
-        if (string.IsNullOrEmpty(senderNickname))
         {
             return;
         }
@@ -85,7 +86,7 @@ static class TilePingCoordinator
             return;
         }
 
-        TilePingService.TryCreatePing(tile.tileGO, true);
+        TilePingService.TryCreatePing(tile.tileGO, true, senderNickname);
     }
 
     static bool ShouldBroadcast()
