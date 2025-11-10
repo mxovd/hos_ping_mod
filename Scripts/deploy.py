@@ -15,7 +15,7 @@ def run(command: list[str], *, cwd: Path) -> None:
 
 
 def compute_package_dir(package_root: Path, mod_version: str) -> Path:
-    prefix = f"Ping_Mod-{mod_version}-"
+    prefix = f"Ping_Mod-v{mod_version}-"
     highest_index = 0
 
     if package_root.exists():
