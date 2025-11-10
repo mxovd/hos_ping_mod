@@ -1,0 +1,102 @@
+name: Build and Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Build package
+        id: package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $repoRoot = Get-Location
+          python Scripts/deploy.py
+
+          $manifest = Get-Content -Raw -Path (Join-Path $repoRoot 'Manifest.json') | ConvertFrom-Json
+          $version = $manifest.modVersion
+
+          $packageRoot = Join-Path $repoRoot 'package'
+          $packageDir = Get-ChildItem -Path $packageRoot -Directory | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+
+          if (-not $packageDir) {
+            throw "No package directory found under $packageRoot"
+          }
+
+          $targetRoot = Join-Path $packageDir.FullName 'Multiplayer Tile Pings'
+          if (-not (Test-Path -Path $targetRoot)) {
+            throw "Expected package contents at $targetRoot"
+          }
+
+          $zipName = "Multiplayer-Tile-Pings-v$version.zip"
+          $zipPath = Join-Path $packageRoot $zipName
+          if (Test-Path -Path $zipPath) {
+            Remove-Item -Path $zipPath -Force
+          }
+
+          Compress-Archive -Path $targetRoot -DestinationPath $zipPath
+
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "package_dir=$($packageDir.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "zip_path=$zipPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Create version tag
+        if: github.event_name == 'workflow_dispatch'
+        id: tag
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $version = '${{ steps.package.outputs.version }}'
+          $tag = "v$version"
+
+          $existing = git ls-remote --tags origin $tag
+          "tag_name=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+          if ($existing) {
+            Write-Host "Tag $tag already exists on origin. Skipping creation."
+            "created=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+            return
+          }
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag $tag
+          git push origin $tag
+
+          "created=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Upload zip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Multiplayer-Tile-Pings-${{ steps.package.outputs.version }}
+          path: ${{ steps.package.outputs.zip_path }}
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Multiplayer Tile Pings v${{ steps.package.outputs.version }}
+          tag_name: ${{ steps.tag.outputs.tag_name || github.ref_name }}
+          files: ${{ steps.package.outputs.zip_path }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
