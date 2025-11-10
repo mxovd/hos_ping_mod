@@ -4,23 +4,35 @@
 from __future__ import annotations
 
 import json
-import re
 import shutil
 import subprocess
-from datetime import UTC, datetime
 from pathlib import Path
-
-
-def safe_slug(value: str) -> str:
-    """Return a filesystem-friendly slug for the provided value."""
-    slug = value.strip().replace(" ", "_")
-    slug = re.sub(r"[^A-Za-z0-9_]+", "", slug)
-    return slug or "mod"
 
 
 def run(command: list[str], *, cwd: Path) -> None:
     """Execute an external command and raise on failure."""
     subprocess.run(command, cwd=cwd, check=True)
+
+
+def compute_package_dir(package_root: Path, mod_version: str) -> Path:
+    prefix = f"Ping_Mod-{mod_version}-"
+    highest_index = 0
+
+    if package_root.exists():
+        for entry in package_root.iterdir():
+            name = entry.name
+            if not name.startswith(prefix):
+                continue
+
+            suffix = name[len(prefix):]
+            if entry.is_file():
+                suffix = suffix.split(".", 1)[0]
+
+            if suffix.isdigit():
+                highest_index = max(highest_index, int(suffix))
+
+    next_index = highest_index + 1
+    return package_root / f"{prefix}{next_index}"
 
 
 def main() -> None:
@@ -42,16 +54,17 @@ def main() -> None:
     with manifest_path.open(encoding="utf-8") as handle:
         manifest = json.load(handle)
 
-    mod_name = manifest.get("modName", "mod")
     mod_version = manifest.get("modVersion", "0.0.0")
 
-    safe_name = safe_slug(mod_name)
-    timestamp = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
-    package_dir = package_root / f"{safe_name}-v{mod_version}-{timestamp}"
-    libraries_dir = package_dir / "Libraries"
-    sounds_attack_dir = package_dir / "Sounds" / "Attack"
+    package_root.mkdir(parents=True, exist_ok=True)
+
+    package_dir = compute_package_dir(package_root, mod_version)
+    target_root = package_dir / "Multiplayer Tile Pings"
+    libraries_dir = target_root / "Libraries"
+    sounds_attack_dir = target_root / "Sounds" / "Attack"
 
     package_dir.mkdir(parents=True, exist_ok=True)
+    target_root.mkdir(parents=True, exist_ok=True)
     libraries_dir.mkdir(parents=True, exist_ok=True)
     sounds_attack_dir.mkdir(parents=True, exist_ok=True)
 
@@ -60,11 +73,11 @@ def main() -> None:
     if not output_dll.exists():
         raise SystemExit(f"Build completed but DLL missing at {output_dll}")
 
-    shutil.copy2(manifest_path, package_dir / "Manifest.json")
+    shutil.copy2(manifest_path, target_root / "Manifest.json")
     shutil.copy2(output_dll, libraries_dir / output_dll.name)
 
     if thumbnail_src.exists():
-        shutil.copy2(thumbnail_src, package_dir / "Thumbnail.jpg")
+        shutil.copy2(thumbnail_src, target_root / "Thumbnail.jpg")
 
     if ping_sound_src.exists():
         shutil.copy2(ping_sound_src, sounds_attack_dir / ping_sound_src.name)
