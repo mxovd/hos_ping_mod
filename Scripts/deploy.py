@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import shutil
 import subprocess
@@ -35,7 +36,40 @@ def compute_package_dir(package_root: Path, mod_version: str) -> Path:
     return package_root / f"{prefix}{next_index}"
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Build and package the Hos Ping Mod.")
+    parser.add_argument(
+        "--install",
+        "-i",
+        action="store_true",
+        help="Copy the built package into the local Hex of Steel mods directory.",
+    )
+    return parser.parse_args()
+
+
+def install_package(package_root: Path) -> Path:
+    install_root = (
+        Path.home()
+        / ".var"
+        / "app"
+        / "com.valvesoftware.Steam"
+        / "config"
+        / "unity3d"
+        / "War Frogs Studio"
+        / "Hex of Steel"
+        / "MODS"
+    )
+    target_path = install_root / package_root.name
+
+    install_root.mkdir(parents=True, exist_ok=True)
+    if target_path.exists():
+        shutil.rmtree(target_path)
+    shutil.copytree(package_root, target_path)
+    return target_path
+
+
 def main() -> None:
+    args = parse_args()
     root = Path(__file__).resolve().parent.parent
     manifest_path = root / "Manifest.json"
     project_path = root / "HosPingMod.csproj"
@@ -83,6 +117,10 @@ def main() -> None:
         shutil.copy2(ping_sound_src, sounds_attack_dir / ping_sound_src.name)
 
     print(f"Package created at {package_dir}")
+
+    if args.install:
+        installed_path = install_package(target_root)
+        print(f"Mod installed to {installed_path}")
 
 
 if __name__ == "__main__":
