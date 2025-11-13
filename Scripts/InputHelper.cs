@@ -7,6 +7,7 @@ static class InputHelper
     static readonly Type InputType = AccessTools.TypeByName("UnityEngine.Input");
     static readonly Type[] MouseButtonSignature = { typeof(int) };
     static readonly Type[] KeySignature = { typeof(KeyCode) };
+    static readonly Type[] KeyDownSignature = { typeof(KeyCode) };
 
     public static bool GetMouseButtonDown(int button)
     {
@@ -48,6 +49,22 @@ static class InputHelper
         }
 
         var method = AccessTools.Method(InputType, "GetKey", KeySignature);
+        if (method == null)
+        {
+            return false;
+        }
+
+        return method.Invoke(null, new object[] { key }) is bool result && result;
+    }
+
+    public static bool GetKeyDown(KeyCode key)
+    {
+        if (InputType == null)
+        {
+            return false;
+        }
+
+        var method = AccessTools.Method(InputType, "GetKeyDown", KeyDownSignature);
         if (method == null)
         {
             return false;
