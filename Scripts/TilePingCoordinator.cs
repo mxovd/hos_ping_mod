@@ -9,7 +9,7 @@ static class TilePingCoordinator
     public const byte EventCode = 94;
     const float AllyCacheRefreshInterval = 2f;
 
-    static readonly HashSet<string> _cachedAlliedNicknames = new HashSet<string>();
+    static readonly HashSet<string> _cachedAlliedPlayerNames = new HashSet<string>();
     static float _lastCacheRefresh;
 
     public static void RequestPing(TileGO tileGO)
@@ -19,14 +19,24 @@ static class TilePingCoordinator
             return;
         }
 
-        string senderNickname = GetLocalNickname();
+        string senderName = GetLocalPlayerName();
+        string pingIdentifier = senderName;
 
-        if (!TilePingService.TryCreatePing(tileGO, false, senderNickname))
+        if (string.IsNullOrEmpty(pingIdentifier))
+        {
+            var settings = global::PlayerSettings.Instance;
+            if (settings != null && !string.IsNullOrEmpty(settings.Username))
+            {
+                pingIdentifier = settings.Username;
+            }
+        }
+
+        if (!TilePingService.TryCreatePing(tileGO, false, pingIdentifier))
         {
             return;
         }
 
-        if (string.IsNullOrEmpty(senderNickname))
+        if (string.IsNullOrEmpty(senderName))
         {
             return;
         }
@@ -39,7 +49,7 @@ static class TilePingCoordinator
         short posX = (short)Mathf.Clamp(tileGO.tile.PosX, short.MinValue, short.MaxValue);
         short posY = (short)Mathf.Clamp(tileGO.tile.PosY, short.MinValue, short.MaxValue);
 
-        object[] payload = new object[] { senderNickname, posX, posY };
+        object[] payload = new object[] { senderName, posX, posY };
         global::MultiplayerManager.RaiseEvent(EventCode, payload);
     }
 
@@ -51,8 +61,8 @@ static class TilePingCoordinator
             return;
         }
 
-        string senderNickname = data[0] as string;
-        if (string.IsNullOrEmpty(senderNickname))
+        string senderName = data[0] as string;
+        if (string.IsNullOrEmpty(senderName))
         {
             return;
         }
@@ -64,7 +74,7 @@ static class TilePingCoordinator
             return;
         }
 
-        if (!CanDisplayPingFrom(senderNickname))
+        if (!CanDisplayPingFrom(senderName))
         {
             return;
         }
@@ -86,7 +96,7 @@ static class TilePingCoordinator
             return;
         }
 
-        TilePingService.TryCreatePing(tile.tileGO, true, senderNickname);
+        TilePingService.TryCreatePing(tile.tileGO, true, senderName);
     }
 
     static bool ShouldBroadcast()
@@ -107,11 +117,16 @@ static class TilePingCoordinator
         }
 
         RefreshAllyCache();
-        return _cachedAlliedNicknames.Count > 0;
+        return _cachedAlliedPlayerNames.Count > 0;
     }
 
-    static bool CanDisplayPingFrom(string senderNickname)
+    static bool CanDisplayPingFrom(string senderName)
     {
+        if (string.IsNullOrEmpty(senderName))
+        {
+            return false;
+        }
+
         var gameData = global::GameData.Instance;
         if (gameData == null || gameData.listOfPlayers == null)
         {
@@ -123,12 +138,12 @@ static class TilePingCoordinator
             return false;
         }
 
-        if (string.Equals(localPlayer.Nickname, senderNickname, StringComparison.Ordinal))
+        if (!string.IsNullOrEmpty(localPlayer.Name) && string.Equals(localPlayer.Name, senderName, StringComparison.Ordinal))
         {
             return true;
         }
 
-        if (!gameData.TryFindPlayerByNickname(senderNickname, out var senderPlayer))
+        if (!gameData.TryFindPlayerByName(senderName, out var senderPlayer))
         {
             return false;
         }
@@ -141,12 +156,15 @@ static class TilePingCoordinator
         return localPlayer.IsAlliedWith(senderPlayer);
     }
 
-    static string GetLocalNickname()
+    static string GetLocalPlayerName()
     {
-        var settings = global::PlayerSettings.Instance;
-        if (settings != null && !string.IsNullOrEmpty(settings.Username))
+        var gameData = global::GameData.Instance;
+        if (gameData != null && gameData.listOfPlayers != null && gameData.TryFindLocalPlayer(out var localPlayer))
         {
-            return settings.Username;
+            if (!string.IsNullOrEmpty(localPlayer.Name))
+            {
+                return localPlayer.Name;
+            }
         }
 
         return null;
@@ -181,7 +199,7 @@ static class TilePingCoordinator
         }
 
         _lastCacheRefresh = Time.unscaledTime;
-        _cachedAlliedNicknames.Clear();
+        _cachedAlliedPlayerNames.Clear();
 
         var gameData = global::GameData.Instance;
         if (gameData == null || gameData.listOfPlayers == null)
@@ -211,12 +229,12 @@ static class TilePingCoordinator
                 continue;
             }
 
-            if (string.IsNullOrEmpty(player.Nickname))
+            if (string.IsNullOrEmpty(player.Name))
             {
                 continue;
             }
 
-            _cachedAlliedNicknames.Add(player.Nickname);
+            _cachedAlliedPlayerNames.Add(player.Name);
         }
     }
 

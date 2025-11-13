@@ -26,7 +26,7 @@ static class TilePingService
     static readonly Color DefaultPingColor = new Color(0.73f, 0.79f, 0.94f);
     static GameObject _highlightPrefab;
 
-    public static bool TryCreatePing(TileGO tileGO, bool bypassCooldown = false, string senderNickname = null)
+    public static bool TryCreatePing(TileGO tileGO, bool bypassCooldown = false, string senderName = null)
     {
         if (tileGO == null)
         {
@@ -43,7 +43,7 @@ static class TilePingService
             _lastPingTime = Time.unscaledTime;
         }
 
-        Color highlightColor = ResolvePingColor(tileGO, senderNickname);
+        Color highlightColor = ResolvePingColor(tileGO, senderName);
         SpawnPingHighlight(tileGO, highlightColor);
         PlayPingSound();
         return true;
@@ -152,35 +152,35 @@ static class TilePingService
         return _highlightPrefab;
     }
 
-    static Color ResolvePingColor(TileGO tileGO, string senderNickname)
+    static Color ResolvePingColor(TileGO tileGO, string senderName)
     {
-        if (!string.IsNullOrEmpty(senderNickname))
+        if (!string.IsNullOrEmpty(senderName))
         {
-            return AssignColorForNickname(senderNickname);
+            return AssignColorForIdentifier(senderName);
         }
 
-        var ownerNickname = tileGO?.tile?.ownerPlayer?.Nickname;
-        if (!string.IsNullOrEmpty(ownerNickname))
+        var ownerName = tileGO?.tile?.ownerPlayer?.Name;
+        if (!string.IsNullOrEmpty(ownerName))
         {
-            return AssignColorForNickname(ownerNickname);
+            return AssignColorForIdentifier(ownerName);
         }
 
         return DefaultPingColor;
     }
 
-    static Color AssignColorForNickname(string nickname)
+    static Color AssignColorForIdentifier(string identifier)
     {
-        if (PingColorAssignments.TryGetValue(nickname, out var color))
+        if (PingColorAssignments.TryGetValue(identifier, out var color))
         {
             return color;
         }
 
-        color = SelectColorForNickname(nickname);
-        PingColorAssignments[nickname] = color;
+        color = SelectColorForIdentifier(identifier);
+        PingColorAssignments[identifier] = color;
         return color;
     }
 
-    static Color SelectColorForNickname(string nickname)
+    static Color SelectColorForIdentifier(string identifier)
     {
         var gameData = GameData.Instance;
         if (gameData != null && gameData.listOfPlayers != null)
@@ -188,7 +188,7 @@ static class TilePingService
             for (int i = 0; i < gameData.listOfPlayers.Count; i++)
             {
                 Player player = gameData.listOfPlayers[i];
-                if (player != null && string.Equals(player.Nickname, nickname, StringComparison.Ordinal))
+                if (player != null && !string.IsNullOrEmpty(player.Name) && string.Equals(player.Name, identifier, StringComparison.Ordinal))
                 {
                     if (PlayerPingColors.Length > 0)
                     {
@@ -207,4 +207,5 @@ static class TilePingService
         _nextPlayerColorIndex = (_nextPlayerColorIndex + 1) % PlayerPingColors.Length;
         return color;
     }
+
 }

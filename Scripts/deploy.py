@@ -3,9 +3,12 @@
 
 from __future__ import annotations
 
+import argparse
 import json
+import re
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
 
@@ -35,8 +38,44 @@ def compute_package_dir(package_root: Path, mod_version: str) -> Path:
     return package_root / f"{prefix}{next_index}"
 
 
-def main() -> None:
-    root = Path(__file__).resolve().parent.parent
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Build and package the Hos Ping Mod.")
+    parser.add_argument(
+        "--install",
+        "-i",
+        action="store_true",
+        help="Copy the built package into the local Hex of Steel mods directory.",
+    )
+    parser.add_argument(
+        "--decompile",
+        action="store_true",
+        help="Decompile the game's Assembly-CSharp.dll into the decompiled folder and exit.",
+    )
+    return parser.parse_args()
+
+
+def install_package(package_root: Path) -> Path:
+    install_root = (
+        Path.home()
+        / ".var"
+        / "app"
+        / "com.valvesoftware.Steam"
+        / "config"
+        / "unity3d"
+        / "War Frogs Studio"
+        / "Hex of Steel"
+        / "MODS"
+    )
+    target_path = install_root / package_root.name
+
+    install_root.mkdir(parents=True, exist_ok=True)
+    if target_path.exists():
+        shutil.rmtree(target_path)
+    shutil.copytree(package_root, target_path)
+    return target_path
+
+
+def build_and_package(root: Path, install: bool) -> None:
     manifest_path = root / "Manifest.json"
     project_path = root / "HosPingMod.csproj"
     output_dll = root / "output" / "net48" / "HosPingMod.dll"
@@ -84,9 +123,65 @@ def main() -> None:
 
     print(f"Package created at {package_dir}")
 
+    if install:
+        installed_path = install_package(target_root)
+        print(f"Mod installed to {installed_path}")
+
+
+def run_decompilation(root: Path) -> Path:
+    assembly_path = Path.home() / (
+        ".var/app/com.valvesoftware.Steam/.steam/steam/steamapps/common/Hex of Steel/"
+        "Hex of Steel_Data/Managed/Assembly-CSharp.dll"
+    )
+
+    if not assembly_path.exists():
+        raise SystemExit(f"Assembly-CSharp.dll not found at {assembly_path}")
+
+    tmp_dir = Path(tempfile.mkdtemp(prefix="hos_decompile_", dir="/tmp"))
+
+    try:
+        command = [
+            "ilspycmd",
+            str(assembly_path),
+            "-p",
+            "-o",
+            str(tmp_dir),
+        ]
+        run(command, cwd=root)
+
+        manager_path = tmp_dir / "MultiplayerManager.cs"
+        if not manager_path.exists():
+            candidates = list(tmp_dir.rglob("MultiplayerManager.cs"))
+            if not candidates:
+                raise SystemExit("MultiplayerManager.cs not found in decompilation output")
+            manager_path = candidates[0]
+
+        content = manager_path.read_text(encoding="utf-8", errors="ignore")
+        match = re.search(r"VERSION\s*=\s*\"([^\"]+)\"", content)
+        if not match:
+            raise SystemExit("VERSION attribute not found in MultiplayerManager.cs")
+
+        version = match.group(1)
+        dest_dir = root / "decompiled" / version
+
+        if dest_dir.exists():
+            shutil.rmtree(dest_dir)
+        dest_dir.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(tmp_dir, dest_dir)
+
+        return dest_dir
+    finally:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+
 
 if __name__ == "__main__":
     try:
-        main()
+        args = parse_args()
+        root = Path(__file__).resolve().parent.parent
+        if args.decompile:
+            decompiled_path = run_decompilation(root)
+            print(f"Assembly decompiled to {decompiled_path}")
+        else:
+            build_and_package(root, args.install)
     except subprocess.CalledProcessError as error:
         raise SystemExit(error.returncode) from error
