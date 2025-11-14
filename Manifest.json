@@ -1,8 +1,8 @@
 {
     "modName": "Ping Mod",
-    "modVersion": "1.0.1",
+    "modVersion": "1.1.0",
     "modAuthor": "mxovd",
     "supportedGameVersion": "8.0.7+",
     "dependencies": "HarmonyCore",
-    "modDescription": "Hold Alt and left-click an hex to broadcast a ping to your allies in multiplayer."
+    "modDescription": "Hold Alt and left-click an hex to broadcast a ping to your allies in multiplayer. Press Alt+C to jump to the last received ping"
 }
