@@ -86,15 +86,8 @@ static class PingCameraJumpController
                 return;
             }
 
-            bool shiftHeld = InputHelper.GetKey(KeyCode.LeftShift) || InputHelper.GetKey(KeyCode.RightShift);
-            if (!shiftHeld)
-            {
-                return;
-            }
-
-            bool altPressedThisFrame = InputHelper.GetKeyDown(KeyCode.LeftAlt) || InputHelper.GetKeyDown(KeyCode.RightAlt);
-            bool shiftPressedThisFrame = InputHelper.GetKeyDown(KeyCode.LeftShift) || InputHelper.GetKeyDown(KeyCode.RightShift);
-            if (!altPressedThisFrame && !shiftPressedThisFrame)
+            bool cPressedThisFrame = InputHelper.GetKeyDown(KeyCode.C);
+            if (!cPressedThisFrame)
             {
                 return;
             }
