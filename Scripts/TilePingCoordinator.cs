@@ -96,6 +96,7 @@ static class TilePingCoordinator
             return;
         }
 
+        PingCameraJumpController.RecordReceivedPing(tile.tileGO);
         TilePingService.TryCreatePing(tile.tileGO, true, senderName);
     }
 
